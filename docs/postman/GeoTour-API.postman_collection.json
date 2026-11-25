@@ -1,0 +1,1154 @@
+{
+  "info": {
+    "_postman_id": "8d21f0b4-9f7a-4b6a-9c33-geotouru4001",
+    "name": "GeoTour API - U4 OpenAPI",
+    "description": "Coleccion generada desde docs/openapi.yaml (Springdoc OpenAPI 3.0.1).\nFlujo sugerido: ejecutar POST /auth/register o /auth/login; el token JWT se guarda automaticamente en la variable 'token' y se usa en los endpoints protegidos.\nSeleccionar el entorno GeoTour-Dev o GeoTour-Prod segun application-dev.yml / application-prod.yml.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.collectionVariables.get('token')) {",
+          "    pm.collectionVariables.set('token', '');",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Reservas",
+      "item": [
+        {
+          "name": "Cancelar una reserva propia (ROLE_USER) o cualquier reserva (ROLE_ADMIN)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reservas/{{reservaId}}/cancelar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservas",
+                "{{reservaId}}",
+                "cancelar"
+              ]
+            },
+            "description": "Cambia el estado de una reserva propia a CANCELADA.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('token');",
+                  "pm.test('Token JWT configurado', () => pm.expect(token, 'Ejecuta primero login o register').to.be.a('string').and.not.be.empty);",
+                  "const allowed = [500, 400, 200, 403, 404, 401];",
+                  "pm.test('Codigo HTTP documentado', () => pm.expect(allowed).to.include(pm.response.code));",
+                  "pm.test('Tiempo de respuesta razonable', () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "if (pm.response.code !== 204 && (pm.response.headers.get('Content-Type') || '').includes('json')) {",
+                  "    pm.test('Cuerpo JSON valido', () => pm.expect(() => pm.response.json()).to.not.throw());",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar todas las reservas (ROLE_ADMIN)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reservas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservas"
+              ]
+            },
+            "description": "Devuelve todas las reservas del sistema. Requiere token JWT con rol ROLE_ADMIN.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('token');",
+                  "pm.test('Token JWT configurado', () => pm.expect(token, 'Ejecuta primero login o register').to.be.a('string').and.not.be.empty);",
+                  "const allowed = [500, 403, 401, 200];",
+                  "pm.test('Codigo HTTP documentado', () => pm.expect(allowed).to.include(pm.response.code));",
+                  "pm.test('Tiempo de respuesta razonable', () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "if (pm.response.code !== 204 && (pm.response.headers.get('Content-Type') || '').includes('json')) {",
+                  "    pm.test('Cuerpo JSON valido', () => pm.expect(() => pm.response.json()).to.not.throw());",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear una reserva para el usuario autenticado (ROLE_USER)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reservas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservas"
+              ]
+            },
+            "description": "Crea una reserva, valida la capacidad disponible del destino y calcula el precio total.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"destinoId\": 1,\n  \"fechaReserva\": \"2026-12-15\",\n  \"numeroAsistentes\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('token');",
+                  "pm.test('Token JWT configurado', () => pm.expect(token, 'Ejecuta primero login o register').to.be.a('string').and.not.be.empty);",
+                  "const allowed = [500, 404, 403, 401, 400, 409, 201];",
+                  "pm.test('Codigo HTTP documentado', () => pm.expect(allowed).to.include(pm.response.code));",
+                  "pm.test('Tiempo de respuesta razonable', () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "if (pm.response.code !== 204 && (pm.response.headers.get('Content-Type') || '').includes('json')) {",
+                  "    pm.test('Cuerpo JSON valido', () => pm.expect(() => pm.response.json()).to.not.throw());",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar las reservas del usuario autenticado (ROLE_USER)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reservas/mis-reservas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservas",
+                "mis-reservas"
+              ]
+            },
+            "description": "Devuelve las reservas del usuario asociado al token JWT.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('token');",
+                  "pm.test('Token JWT configurado', () => pm.expect(token, 'Ejecuta primero login o register').to.be.a('string').and.not.be.empty);",
+                  "const allowed = [500, 403, 401, 200];",
+                  "pm.test('Codigo HTTP documentado', () => pm.expect(allowed).to.include(pm.response.code));",
+                  "pm.test('Tiempo de respuesta razonable', () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "if (pm.response.code !== 204 && (pm.response.headers.get('Content-Type') || '').includes('json')) {",
+                  "    pm.test('Cuerpo JSON valido', () => pm.expect(() => pm.response.json()).to.not.throw());",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar una reserva (ROLE_ADMIN)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reservas/{{reservaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reservas",
+                "{{reservaId}}"
+              ]
+            },
+            "description": "Elimina una reserva del sistema. Requiere token JWT con rol ROLE_ADMIN.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('token');",
+                  "pm.test('Token JWT configurado', () => pm.expect(token, 'Ejecuta primero login o register').to.be.a('string').and.not.be.empty);",
+                  "const allowed = [500, 403, 400, 404, 204, 401];",
+                  "pm.test('Codigo HTTP documentado', () => pm.expect(allowed).to.include(pm.response.code));",
+                  "pm.test('Tiempo de respuesta razonable', () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "if (pm.response.code !== 204 && (pm.response.headers.get('Content-Type') || '').includes('json')) {",
+                  "    pm.test('Cuerpo JSON valido', () => pm.expect(() => pm.response.json()).to.not.throw());",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Destinos",
+      "item": [
+        {
+          "name": "Obtener un destino por su identificador",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/destinos/{{{destinoId}}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "destinos",
+                "{{{destinoId}}}"
+              ]
+            },
+            "description": "Recupera un destino concreto del catalogo. Acceso publico.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const allowed = [500, 200, 404, 400];",
+                  "pm.test('Codigo HTTP documentado', () => pm.expect(allowed).to.include(pm.response.code));",
+                  "pm.test('Tiempo de respuesta razonable', () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "if (pm.response.code !== 204 && (pm.response.headers.get('Content-Type') || '').includes('json')) {",
+                  "    pm.test('Cuerpo JSON valido', () => pm.expect(() => pm.response.json()).to.not.throw());",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Actualizar un destino (ROLE_ADMIN)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/destinos/{{{destinoId}}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "destinos",
+                "{{{destinoId}}}"
+              ]
+            },
+            "description": "Actualiza los datos de un destino existente. Requiere token JWT con rol ROLE_ADMIN.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Machu Picchu\",\n  \"descripcion\": \"Ciudadela inca ubicada en la region de Cusco\",\n  \"latitud\": -13.1631,\n  \"longitud\": -72.545,\n  \"precioBasePorPersona\": 250.0,\n  \"capacidad\": 120\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('token');",
+                  "pm.test('Token JWT configurado', () => pm.expect(token, 'Ejecuta primero login o register').to.be.a('string').and.not.be.empty);",
+                  "const allowed = [500, 403, 404, 200, 401, 400, 409];",
+                  "pm.test('Codigo HTTP documentado', () => pm.expect(allowed).to.include(pm.response.code));",
+                  "pm.test('Tiempo de respuesta razonable', () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "if (pm.response.code !== 204 && (pm.response.headers.get('Content-Type') || '').includes('json')) {",
+                  "    pm.test('Cuerpo JSON valido', () => pm.expect(() => pm.response.json()).to.not.throw());",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar un destino (ROLE_ADMIN)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/destinos/{{{destinoId}}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "destinos",
+                "{{{destinoId}}}"
+              ]
+            },
+            "description": "Elimina un destino del catalogo. Requiere token JWT con rol ROLE_ADMIN.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('token');",
+                  "pm.test('Token JWT configurado', () => pm.expect(token, 'Ejecuta primero login o register').to.be.a('string').and.not.be.empty);",
+                  "const allowed = [500, 403, 404, 204, 409, 400, 401];",
+                  "pm.test('Codigo HTTP documentado', () => pm.expect(allowed).to.include(pm.response.code));",
+                  "pm.test('Tiempo de respuesta razonable', () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "if (pm.response.code !== 204 && (pm.response.headers.get('Content-Type') || '').includes('json')) {",
+                  "    pm.test('Cuerpo JSON valido', () => pm.expect(() => pm.response.json()).to.not.throw());",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar todos los destinos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/destinos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "destinos"
+              ]
+            },
+            "description": "Devuelve el catalogo completo de destinos turisticos. Acceso publico.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const allowed = [500, 200];",
+                  "pm.test('Codigo HTTP documentado', () => pm.expect(allowed).to.include(pm.response.code));",
+                  "pm.test('Tiempo de respuesta razonable', () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "if (pm.response.code !== 204 && (pm.response.headers.get('Content-Type') || '').includes('json')) {",
+                  "    pm.test('Cuerpo JSON valido', () => pm.expect(() => pm.response.json()).to.not.throw());",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear un destino (ROLE_ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/destinos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "destinos"
+              ]
+            },
+            "description": "Crea un nuevo destino en el catalogo. Requiere token JWT con rol ROLE_ADMIN.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Machu Picchu\",\n  \"descripcion\": \"Ciudadela inca ubicada en la region de Cusco\",\n  \"latitud\": -13.1631,\n  \"longitud\": -72.545,\n  \"precioBasePorPersona\": 250.0,\n  \"capacidad\": 120\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('token');",
+                  "pm.test('Token JWT configurado', () => pm.expect(token, 'Ejecuta primero login o register').to.be.a('string').and.not.be.empty);",
+                  "const allowed = [400, 500, 403, 201, 401, 409];",
+                  "pm.test('Codigo HTTP documentado', () => pm.expect(allowed).to.include(pm.response.code));",
+                  "pm.test('Tiempo de respuesta razonable', () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "if (pm.response.code !== 204 && (pm.response.headers.get('Content-Type') || '').includes('json')) {",
+                  "    pm.test('Cuerpo JSON valido', () => pm.expect(() => pm.response.json()).to.not.throw());",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Resenas",
+      "item": [
+        {
+          "name": "Listar las resenas de un destino (publico)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/destinos/{{destinoId}}/reseñas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "destinos",
+                "{{destinoId}}",
+                "reseñas"
+              ]
+            },
+            "description": "Devuelve todas las resenas publicadas para un destino. No requiere autenticacion.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const allowed = [500, 400, 404, 200];",
+                  "pm.test('Codigo HTTP documentado', () => pm.expect(allowed).to.include(pm.response.code));",
+                  "pm.test('Tiempo de respuesta razonable', () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "if (pm.response.code !== 204 && (pm.response.headers.get('Content-Type') || '').includes('json')) {",
+                  "    pm.test('Cuerpo JSON valido', () => pm.expect(() => pm.response.json()).to.not.throw());",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear una resena para un destino (ROLE_USER)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/destinos/{{destinoId}}/reseñas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "destinos",
+                "{{destinoId}}",
+                "reseñas"
+              ]
+            },
+            "description": "Publica una resena para el destino indicado usando el usuario autenticado del token JWT.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"calificacion\": 5,\n  \"comentario\": \"Una experiencia increible, muy recomendable\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('token');",
+                  "pm.test('Token JWT configurado', () => pm.expect(token, 'Ejecuta primero login o register').to.be.a('string').and.not.be.empty);",
+                  "const allowed = [500, 404, 403, 201, 401, 409, 400];",
+                  "pm.test('Codigo HTTP documentado', () => pm.expect(allowed).to.include(pm.response.code));",
+                  "pm.test('Tiempo de respuesta razonable', () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "if (pm.response.code !== 204 && (pm.response.headers.get('Content-Type') || '').includes('json')) {",
+                  "    pm.test('Cuerpo JSON valido', () => pm.expect(() => pm.response.json()).to.not.throw());",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar las resenas de un destino (publico)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/destinos/{{destinoId}}/resenas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "destinos",
+                "{{destinoId}}",
+                "resenas"
+              ]
+            },
+            "description": "Devuelve todas las resenas publicadas para un destino. No requiere autenticacion.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const allowed = [500, 400, 404, 200];",
+                  "pm.test('Codigo HTTP documentado', () => pm.expect(allowed).to.include(pm.response.code));",
+                  "pm.test('Tiempo de respuesta razonable', () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "if (pm.response.code !== 204 && (pm.response.headers.get('Content-Type') || '').includes('json')) {",
+                  "    pm.test('Cuerpo JSON valido', () => pm.expect(() => pm.response.json()).to.not.throw());",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear una resena para un destino (ROLE_USER)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/destinos/{{destinoId}}/resenas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "destinos",
+                "{{destinoId}}",
+                "resenas"
+              ]
+            },
+            "description": "Publica una resena para el destino indicado usando el usuario autenticado del token JWT.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"calificacion\": 5,\n  \"comentario\": \"Una experiencia increible, muy recomendable\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('token');",
+                  "pm.test('Token JWT configurado', () => pm.expect(token, 'Ejecuta primero login o register').to.be.a('string').and.not.be.empty);",
+                  "const allowed = [500, 404, 403, 201, 401, 409, 400];",
+                  "pm.test('Codigo HTTP documentado', () => pm.expect(allowed).to.include(pm.response.code));",
+                  "pm.test('Tiempo de respuesta razonable', () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "if (pm.response.code !== 204 && (pm.response.headers.get('Content-Type') || '').includes('json')) {",
+                  "    pm.test('Cuerpo JSON valido', () => pm.expect(() => pm.response.json()).to.not.throw());",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Autenticacion",
+      "item": [
+        {
+          "name": "Registrar un nuevo usuario con rol ROLE_USER",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Crea una cuenta de usuario, devuelve un token JWT listo para usar y el rol ROLE_USER.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombreCompleto\": \"Jose Alonso Macias\",\n  \"correo\": \"usuario@geotour.com\",\n  \"password\": \"Admin1234!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const allowed = [500, 400, 409, 201];",
+                  "pm.test('Codigo HTTP documentado', () => pm.expect(allowed).to.include(pm.response.code));",
+                  "pm.test('Tiempo de respuesta razonable', () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "if (pm.response.code !== 204 && (pm.response.headers.get('Content-Type') || '').includes('json')) {",
+                  "    pm.test('Cuerpo JSON valido', () => pm.expect(() => pm.response.json()).to.not.throw());",
+                  "}",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "    const body = pm.response.json();",
+                  "    if (body.token) {",
+                  "        pm.collectionVariables.set('token', body.token);",
+                  "        console.log('Token JWT guardado en la variable token');",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Iniciar sesion y obtener un token JWT",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Valida las credenciales y devuelve un token Bearer JWT con una vigencia configurable.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"usuario@geotour.com\",\n  \"password\": \"Admin1234!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const allowed = [500, 401, 200, 400];",
+                  "pm.test('Codigo HTTP documentado', () => pm.expect(allowed).to.include(pm.response.code));",
+                  "pm.test('Tiempo de respuesta razonable', () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "if (pm.response.code !== 204 && (pm.response.headers.get('Content-Type') || '').includes('json')) {",
+                  "    pm.test('Cuerpo JSON valido', () => pm.expect(() => pm.response.json()).to.not.throw());",
+                  "}",
+                  "if (pm.response.code >= 200 && pm.response.code < 300) {",
+                  "    const body = pm.response.json();",
+                  "    if (body.token) {",
+                  "        pm.collectionVariables.set('token', body.token);",
+                  "        console.log('Token JWT guardado en la variable token');",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Clima",
+      "item": [
+        {
+          "name": "Obtener el clima actual de un destino (publico)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/destinos/{{destinoId}}/clima",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "destinos",
+                "{{destinoId}}",
+                "clima"
+              ]
+            },
+            "description": "Consulta el clima en tiempo real usando la API externa OpenWeather. No requiere autenticacion.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const allowed = [500, 400, 404, 502, 200];",
+                  "pm.test('Codigo HTTP documentado', () => pm.expect(allowed).to.include(pm.response.code));",
+                  "pm.test('Tiempo de respuesta razonable', () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "if (pm.response.code !== 204 && (pm.response.headers.get('Content-Type') || '').includes('json')) {",
+                  "    pm.test('Cuerpo JSON valido', () => pm.expect(() => pm.response.json()).to.not.throw());",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Resenas (Administracion)",
+      "item": [
+        {
+          "name": "Eliminar una reseña propia (ROLE_USER) o cualquier resena (ROLE_ADMIN)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/reseñas/{{{destinoId}}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reseñas",
+                "{{{destinoId}}}"
+              ]
+            },
+            "description": "Elimina una resena por su identificador. Solo el autor o un administrador pueden eliminarla.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('token');",
+                  "pm.test('Token JWT configurado', () => pm.expect(token, 'Ejecuta primero login o register').to.be.a('string').and.not.be.empty);",
+                  "const allowed = [404, 500, 403, 400, 401, 204];",
+                  "pm.test('Codigo HTTP documentado', () => pm.expect(allowed).to.include(pm.response.code));",
+                  "pm.test('Tiempo de respuesta razonable', () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "if (pm.response.code !== 204 && (pm.response.headers.get('Content-Type') || '').includes('json')) {",
+                  "    pm.test('Cuerpo JSON valido', () => pm.expect(() => pm.response.json()).to.not.throw());",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eliminar una reseña propia (ROLE_USER) o cualquier resena (ROLE_ADMIN)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/resenas/{{resenaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "resenas",
+                "{{resenaId}}"
+              ]
+            },
+            "description": "Elimina una resena por su identificador. Solo el autor o un administrador pueden eliminarla.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.collectionVariables.get('token');",
+                  "pm.test('Token JWT configurado', () => pm.expect(token, 'Ejecuta primero login o register').to.be.a('string').and.not.be.empty);",
+                  "const allowed = [404, 500, 403, 400, 401, 204];",
+                  "pm.test('Codigo HTTP documentado', () => pm.expect(allowed).to.include(pm.response.code));",
+                  "pm.test('Tiempo de respuesta razonable', () => pm.expect(pm.response.responseTime).to.be.below(10000));",
+                  "if (pm.response.code !== 204 && (pm.response.headers.get('Content-Type') || '').includes('json')) {",
+                  "    pm.test('Cuerpo JSON valido', () => pm.expect(() => pm.response.json()).to.not.throw());",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "destinoId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "reservaId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "resenaId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "adminEmail",
+      "value": "admin@geotour.com",
+      "type": "string"
+    },
+    {
+      "key": "adminPassword",
+      "value": "Admin1234!",
+      "type": "string"
+    },
+    {
+      "key": "userEmail",
+      "value": "usuario@geotour.com",
+      "type": "string"
+    },
+    {
+      "key": "userPassword",
+      "value": "Admin1234!",
+      "type": "string"
+    }
+  ]
+}

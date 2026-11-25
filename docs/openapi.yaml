@@ -1,0 +1,1368 @@
+openapi: 3.0.1
+info:
+  title: GeoTour API
+  description: "API REST para la gestion de reservas turisticas, destinos, resenas\
+    \ y consulta del clima. Los endpoints protegidos requieren un token JWT obtenido\
+    \ en /api/v1/auth/login."
+  contact:
+    name: GeoTour
+    email: soporte@geotour.com
+  license:
+    name: Uso interno
+  version: 1.0.0
+servers:
+- url: http://localhost:8080
+  description: Servidor local
+tags:
+- name: Reservas
+  description: Gestion de reservas turisticas
+- name: Destinos
+  description: Catalogo y administracion de destinos turisticos
+- name: Resenas
+  description: Opiniones de los usuarios sobre los destinos
+- name: Autenticacion
+  description: Registro e inicio de sesion de usuarios
+- name: Resenas (Administracion)
+  description: Moderacion de resenas por parte del administrador
+- name: Clima
+  description: Consulta climatologica en tiempo real por destino
+paths:
+  /api/v1/reservas/{id}/cancelar:
+    put:
+      tags:
+      - Reservas
+      summary: Cancelar una reserva propia (ROLE_USER) o cualquier reserva (ROLE_ADMIN)
+      description: Cambia el estado de la reserva a CANCELADA. El dueño o un administrador pueden cancelarla.
+      operationId: cancelar
+      parameters:
+      - name: id
+        in: path
+        description: Identificador unico de la reserva a cancelar
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 25
+      responses:
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "400":
+          description: Identificador invalido o reserva ya cancelada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "200":
+          description: Reserva cancelada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservaResponseDTO"
+        "403":
+          description: La reserva pertenece a otro usuario
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "404":
+          description: Reserva no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "401":
+          description: Token ausente o invalido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+      security:
+      - bearerAuth: []
+  /api/v1/destinos/{id}:
+    get:
+      tags:
+      - Destinos
+      summary: Obtener un destino por su identificador
+      description: Recupera un destino concreto del catalogo. Acceso publico.
+      operationId: obtener
+      parameters:
+      - name: id
+        in: path
+        description: Identificador unico del destino
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      responses:
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "200":
+          description: Destino encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DestinoResponseDTO"
+        "404":
+          description: Destino no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "400":
+          description: Identificador invalido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+      security: []
+    put:
+      tags:
+      - Destinos
+      summary: Actualizar un destino (ROLE_ADMIN)
+      description: Actualiza los datos de un destino existente. Requiere token JWT
+        con rol ROLE_ADMIN.
+      operationId: actualizar
+      parameters:
+      - name: id
+        in: path
+        description: Identificador unico del destino a actualizar
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DestinoDTO"
+        required: true
+      responses:
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "403":
+          description: El usuario no tiene rol ROLE_ADMIN
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "404":
+          description: Destino no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "200":
+          description: Destino actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DestinoResponseDTO"
+        "401":
+          description: Token ausente o invalido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "400":
+          description: Datos del destino o identificador invalidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "409":
+          description: Ya existe un destino con ese nombre
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+      security:
+      - bearerAuth: []
+    delete:
+      tags:
+      - Destinos
+      summary: Eliminar un destino (ROLE_ADMIN)
+      description: Elimina un destino del catalogo. Requiere token JWT con rol ROLE_ADMIN.
+      operationId: eliminar_3
+      parameters:
+      - name: id
+        in: path
+        description: Identificador unico del destino a eliminar
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      responses:
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "403":
+          description: El usuario no tiene rol ROLE_ADMIN
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "404":
+          description: Destino no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "204":
+          description: Destino eliminado correctamente
+        "409":
+          description: El destino tiene resenas o reservas asociadas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "400":
+          description: Identificador invalido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "401":
+          description: Token ausente o invalido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+      security:
+      - bearerAuth: []
+  /api/v1/reservas:
+    get:
+      tags:
+      - Reservas
+      summary: Listar todas las reservas (ROLE_ADMIN)
+      description: Devuelve todas las reservas del sistema. Requiere token JWT con
+        rol ROLE_ADMIN.
+      operationId: listarTodas
+      responses:
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "403":
+          description: El usuario no tiene rol ROLE_ADMIN
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "401":
+          description: Token ausente o invalido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "200":
+          description: Listado completo de reservas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReservaResponseDTO"
+      security:
+      - bearerAuth: []
+    post:
+      tags:
+      - Reservas
+      summary: Crear una reserva para el usuario autenticado (ROLE_USER)
+      description: "Crea una reserva, valida la capacidad disponible del destino y\
+        \ calcula el precio total."
+      operationId: crear
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReservaDTO"
+        required: true
+      responses:
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "404":
+          description: Destino no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "403":
+          description: El usuario no tiene rol ROLE_USER
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "401":
+          description: Token ausente o invalido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "400":
+          description: Datos de la reserva invalidos o capacidad insuficiente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "409":
+          description: Conflicto al crear la reserva
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "201":
+          description: Reserva creada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReservaResponseDTO"
+      security:
+      - bearerAuth: []
+  /api/v1/destinos:
+    get:
+      tags:
+      - Destinos
+      summary: Listar todos los destinos
+      description: Devuelve el catalogo completo de destinos turisticos. Acceso publico.
+      operationId: listar
+      responses:
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "200":
+          description: Listado de destinos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DestinoResponseDTO"
+      security: []
+    post:
+      tags:
+      - Destinos
+      summary: Crear un destino (ROLE_ADMIN)
+      description: Crea un nuevo destino en el catalogo. Requiere token JWT con rol
+        ROLE_ADMIN.
+      operationId: crear_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DestinoDTO"
+        required: true
+      responses:
+        "400":
+          description: Datos del destino invalidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "403":
+          description: El usuario no tiene rol ROLE_ADMIN
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "201":
+          description: Destino creado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DestinoResponseDTO"
+        "401":
+          description: Token ausente o invalido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "409":
+          description: Ya existe un destino con ese nombre
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+      security:
+      - bearerAuth: []
+  /api/v1/destinos/{destinoId}/reseñas:
+    get:
+      tags:
+      - Resenas
+      summary: Listar las resenas de un destino (publico)
+      description: Devuelve todas las resenas publicadas para un destino. No requiere
+        autenticacion.
+      operationId: listar_1
+      parameters:
+      - name: destinoId
+        in: path
+        description: Identificador del destino cuyas resenas se listaran
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      responses:
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "400":
+          description: Identificador de destino invalido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "404":
+          description: Destino no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "200":
+          description: Listado de resenas del destino
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ResenaResponseDTO"
+      security: []
+    post:
+      tags:
+      - Resenas
+      summary: Crear una resena para un destino (ROLE_USER)
+      description: Publica una resena para el destino indicado usando el usuario autenticado
+        del token JWT.
+      operationId: crear_2
+      parameters:
+      - name: destinoId
+        in: path
+        description: Identificador del destino que se resenara
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResenaDTO"
+        required: true
+      responses:
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "404":
+          description: Destino no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "403":
+          description: El usuario no tiene rol ROLE_USER
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "201":
+          description: Resena creada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResenaResponseDTO"
+        "401":
+          description: Token ausente o invalido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "409":
+          description: El usuario ya publico una resena para este destino
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "400":
+          description: Datos de la resena o identificador invalidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+      security:
+      - bearerAuth: []
+  /api/v1/destinos/{destinoId}/resenas:
+    get:
+      tags:
+      - Resenas
+      summary: Listar las resenas de un destino (publico)
+      description: Devuelve todas las resenas publicadas para un destino. No requiere
+        autenticacion.
+      operationId: listar_2
+      parameters:
+      - name: destinoId
+        in: path
+        description: Identificador del destino cuyas resenas se listaran
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      responses:
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "400":
+          description: Identificador de destino invalido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "404":
+          description: Destino no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "200":
+          description: Listado de resenas del destino
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ResenaResponseDTO"
+      security: []
+    post:
+      tags:
+      - Resenas
+      summary: Crear una resena para un destino (ROLE_USER)
+      description: Publica una resena para el destino indicado usando el usuario autenticado
+        del token JWT.
+      operationId: crear_3
+      parameters:
+      - name: destinoId
+        in: path
+        description: Identificador del destino que se resenara
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResenaDTO"
+        required: true
+      responses:
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "404":
+          description: Destino no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "403":
+          description: El usuario no tiene rol ROLE_USER
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "201":
+          description: Resena creada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResenaResponseDTO"
+        "401":
+          description: Token ausente o invalido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "409":
+          description: El usuario ya publico una resena para este destino
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "400":
+          description: Datos de la resena o identificador invalidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+      security:
+      - bearerAuth: []
+  /api/v1/auth/register:
+    post:
+      tags:
+      - Autenticacion
+      summary: Registrar un nuevo usuario con rol ROLE_USER
+      description: "Crea una cuenta de usuario, devuelve un token JWT listo para usar\
+        \ y el rol ROLE_USER."
+      operationId: register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UsuarioDTO"
+        required: true
+      responses:
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "400":
+          description: Datos de registro invalidos o errores de validacion
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "409":
+          description: El correo electronico ya esta registrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "201":
+          description: Usuario registrado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponseDTO"
+      security: []
+  /api/v1/auth/login:
+    post:
+      tags:
+      - Autenticacion
+      summary: Iniciar sesion y obtener un token JWT
+      description: Valida las credenciales y devuelve un token Bearer JWT con una
+        vigencia configurable.
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginDTO"
+        required: true
+      responses:
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "401":
+          description: Credenciales invalidas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "200":
+          description: Autenticacion correcta
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponseDTO"
+        "400":
+          description: Datos de acceso invalidos o errores de validacion
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+      security: []
+  /api/v1/reservas/mis-reservas:
+    get:
+      tags:
+      - Reservas
+      summary: Listar las reservas del usuario autenticado (ROLE_USER)
+      description: Devuelve las reservas del usuario asociado al token JWT.
+      operationId: listarMisReservas
+      responses:
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "403":
+          description: El usuario no tiene rol ROLE_USER
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "401":
+          description: Token ausente o invalido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "200":
+          description: Listado de reservas del usuario autenticado
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReservaResponseDTO"
+      security:
+      - bearerAuth: []
+  /api/v1/destinos/{destinoId}/clima:
+    get:
+      tags:
+      - Clima
+      summary: Obtener el clima actual de un destino (publico)
+      description: Consulta el clima en tiempo real usando la API externa OpenWeather.
+        No requiere autenticacion.
+      operationId: obtenerClima
+      parameters:
+      - name: destinoId
+        in: path
+        description: Identificador del destino del que se consultara el clima
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 1
+      responses:
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "400":
+          description: Identificador de destino invalido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "404":
+          description: Destino no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "502":
+          description: Error de integracion con el proveedor del clima
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "200":
+          description: Clima actual del destino
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClimaResponseDTO"
+      security: []
+  /api/v1/reservas/{id}:
+    delete:
+      tags:
+      - Reservas
+      summary: Eliminar una reserva (ROLE_ADMIN)
+      description: Elimina una reserva del sistema. Requiere token JWT con rol ROLE_ADMIN.
+      operationId: eliminar
+      parameters:
+      - name: id
+        in: path
+        description: Identificador unico de la reserva a eliminar
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 25
+      responses:
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "403":
+          description: El usuario no tiene rol ROLE_ADMIN
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "400":
+          description: Identificador invalido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "404":
+          description: Reserva no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "204":
+          description: Reserva eliminada correctamente
+        "401":
+          description: Token ausente o invalido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+      security:
+      - bearerAuth: []
+  /api/v1/reseñas/{id}:
+    delete:
+      tags:
+      - Resenas (Administracion)
+      summary: Eliminar una reseña propia (ROLE_USER) o cualquier resena (ROLE_ADMIN)
+      description: Elimina una resena por su identificador. Solo el autor o un administrador
+        pueden eliminarla.
+      operationId: eliminar_1
+      parameters:
+      - name: id
+        in: path
+        description: Identificador unico de la resena a eliminar
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 10
+      responses:
+        "404":
+          description: Resena no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "403":
+          description: El usuario no tiene rol ROLE_ADMIN
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "400":
+          description: Identificador invalido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "401":
+          description: Token ausente o invalido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "204":
+          description: Resena eliminada correctamente
+      security:
+      - bearerAuth: []
+  /api/v1/resenas/{id}:
+    delete:
+      tags:
+      - Resenas (Administracion)
+      summary: Eliminar una reseña propia (ROLE_USER) o cualquier resena (ROLE_ADMIN)
+      description: Elimina una resena por su identificador. Solo el autor o un administrador
+        pueden eliminarla.
+      operationId: eliminar_2
+      parameters:
+      - name: id
+        in: path
+        description: Identificador unico de la resena a eliminar
+        required: true
+        schema:
+          type: integer
+          format: int64
+        example: 10
+      responses:
+        "404":
+          description: Resena no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "500":
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "403":
+          description: El usuario no tiene rol ROLE_ADMIN
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "400":
+          description: Identificador invalido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "401":
+          description: Token ausente o invalido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+        "204":
+          description: Resena eliminada correctamente
+      security:
+      - bearerAuth: []
+components:
+  schemas:
+    ErrorResponseDTO:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          description: Instancia UTC en que ocurrio el error
+          format: date-time
+          example: 2026-11-11T15:30:00Z
+        status:
+          type: integer
+          description: Codigo HTTP del error
+          format: int32
+          example: 404
+        error:
+          type: string
+          description: Razon del codigo HTTP
+          example: Not Found
+        message:
+          type: string
+          description: Mensaje descriptivo del error
+          example: Destino no encontrado con id 99
+        path:
+          type: string
+          description: Ruta de la peticion que genero el error
+          example: /api/v1/destinos/99
+        errors:
+          type: array
+          description: Detalles adicionales de validacion u otros errores
+          items:
+            type: string
+            description: Detalles adicionales de validacion u otros errores
+      description: Respuesta estandar de error devuelta por el controlador global
+        de excepciones
+    ReservaResponseDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identificador unico de la reserva
+          format: int64
+          example: 25
+        usuarioId:
+          type: integer
+          description: Identificador del usuario titular de la reserva
+          format: int64
+          example: 2
+        usuarioNombre:
+          type: string
+          description: Nombre del usuario titular de la reserva
+          example: Jose Alonso Macias
+        destinoId:
+          type: integer
+          description: Identificador del destino reservado
+          format: int64
+          example: 1
+        destinoNombre:
+          type: string
+          description: Nombre del destino reservado
+          example: Machu Picchu
+        fechaReserva:
+          type: string
+          description: Fecha de la reserva
+          format: date
+          example: 2026-12-15
+        numeroAsistentes:
+          type: integer
+          description: Numero de personas incluidas en la reserva
+          format: int32
+          example: 2
+        precioTotal:
+          type: number
+          description: Precio total calculado de la reserva
+          example: 500.0
+        estado:
+          type: string
+          description: Estado actual de la reserva
+          example: PENDIENTE
+          enum:
+          - PENDIENTE
+          - CONFIRMADA
+          - CANCELADA
+      description: Reserva turistica devuelta por la API
+    DestinoDTO:
+      required:
+      - capacidad
+      - descripcion
+      - latitud
+      - longitud
+      - nombre
+      - precioBasePorPersona
+      type: object
+      properties:
+        nombre:
+          maxLength: 150
+          minLength: 0
+          type: string
+          description: Nombre del destino
+          example: Machu Picchu
+        descripcion:
+          maxLength: 2000
+          minLength: 0
+          type: string
+          description: Descripcion del destino
+          example: Ciudadela inca ubicada en la region de Cusco
+        latitud:
+          maximum: 90.0
+          exclusiveMaximum: false
+          minimum: -90.0
+          exclusiveMinimum: false
+          type: number
+          description: Latitud del destino entre -90 y 90
+          format: double
+          example: -13.1631
+        longitud:
+          maximum: 180.0
+          exclusiveMaximum: false
+          minimum: -180.0
+          exclusiveMinimum: false
+          type: number
+          description: Longitud del destino entre -180 y 180
+          format: double
+          example: -72.545
+        precioBasePorPersona:
+          minimum: 0.01
+          exclusiveMinimum: false
+          type: number
+          description: Precio base por persona en la moneda local
+          example: 250.0
+        capacidad:
+          minimum: 1
+          type: integer
+          description: Capacidad maxima de visitantes del destino
+          format: int32
+          example: 120
+      description: Datos necesarios para crear o actualizar un destino turistico
+    DestinoResponseDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identificador unico del destino
+          format: int64
+          example: 1
+        nombre:
+          type: string
+          description: Nombre del destino
+          example: Machu Picchu
+        descripcion:
+          type: string
+          description: Descripcion del destino
+          example: Ciudadela inca ubicada en la region de Cusco
+        latitud:
+          type: number
+          description: Latitud del destino
+          format: double
+          example: -13.1631
+        longitud:
+          type: number
+          description: Longitud del destino
+          format: double
+          example: -72.545
+        precioBasePorPersona:
+          type: number
+          description: Precio base por persona
+          example: 250.0
+        capacidad:
+          type: integer
+          description: Capacidad maxima de visitantes
+          format: int32
+          example: 120
+      description: Destino turistico devuelto por el catalogo
+    ReservaDTO:
+      required:
+      - destinoId
+      - fechaReserva
+      - numeroAsistentes
+      type: object
+      properties:
+        destinoId:
+          type: integer
+          description: Identificador del destino a reservar
+          format: int64
+          example: 1
+        fechaReserva:
+          type: string
+          description: "Fecha de la reserva, no puede ser anterior a hoy"
+          format: date
+          example: 2026-12-15
+        numeroAsistentes:
+          minimum: 1
+          type: integer
+          description: Numero de personas incluidas en la reserva
+          format: int32
+          example: 2
+      description: Datos necesarios para crear una reserva turistica
+    ResenaDTO:
+      required:
+      - calificacion
+      - comentario
+      type: object
+      properties:
+        calificacion:
+          maximum: 5
+          minimum: 1
+          type: integer
+          description: Calificacion del destino de 1 a 5 estrellas
+          format: int32
+          example: 5
+        comentario:
+          maxLength: 1000
+          minLength: 0
+          type: string
+          description: Comentario de la resena
+          example: "Una experiencia increible, muy recomendable"
+      description: Datos necesarios para publicar una resena
+    ResenaResponseDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identificador unico de la resena
+          format: int64
+          example: 10
+        destinoId:
+          type: integer
+          description: Identificador del destino resenado
+          format: int64
+          example: 1
+        destinoNombre:
+          type: string
+          description: Nombre del destino resenado
+          example: Machu Picchu
+        usuarioId:
+          type: integer
+          description: Identificador del usuario que publico la resena
+          format: int64
+          example: 2
+        usuarioNombre:
+          type: string
+          description: Nombre del usuario que publico la resena
+          example: Jose Alonso Macias
+        calificacion:
+          maximum: 5
+          minimum: 1
+          type: integer
+          description: Calificacion otorgada al destino
+          format: int32
+          example: 5
+        comentario:
+          type: string
+          description: Comentario de la resena
+          example: "Una experiencia increible, muy recomendable"
+        fechaCreacion:
+          type: string
+          description: Fecha y hora de creacion de la resena
+          format: date-time
+      description: Resena publicada por un usuario sobre un destino
+    UsuarioDTO:
+      required:
+      - correo
+      - nombreCompleto
+      - password
+      type: object
+      properties:
+        nombreCompleto:
+          maxLength: 100
+          minLength: 3
+          type: string
+          description: Nombre completo del usuario
+          example: Jose Alonso Macias
+        correo:
+          minLength: 0
+          type: string
+          description: Correo electronico unico del usuario
+          format: email
+          example: usuario@geotour.com
+        password:
+          type: string
+          description: Contrasena del usuario
+          format: password
+          example: Admin1234!
+      description: Datos para registrar un nuevo usuario con rol ROLE_USER
+    AuthResponseDTO:
+      type: object
+      properties:
+        token:
+          type: string
+          description: "Token JWT firmado que debe enviarse como Authorization: Bearer\
+            \ <token>"
+          example: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c3VhcmlvQGdlb3RvdXIuY29tIn0.example
+        tokenType:
+          type: string
+          description: Tipo de token devuelto
+          example: Bearer
+          enum:
+          - Bearer
+        expiresIn:
+          type: integer
+          description: Tiempo de validez del token en segundos
+          format: int64
+          example: 86400
+        usuario:
+          $ref: "#/components/schemas/UsuarioResponseDTO"
+      description: Respuesta de autenticacion con el token JWT y los datos del usuario
+    UsuarioResponseDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Identificador unico del usuario
+          format: int64
+          example: 2
+        nombreCompleto:
+          type: string
+          description: Nombre completo del usuario
+          example: Jose Alonso Macias
+        correo:
+          type: string
+          description: Correo electronico del usuario
+          format: email
+          example: usuario@geotour.com
+        rol:
+          type: string
+          description: Rol asignado al usuario
+          example: ROLE_USER
+          enum:
+          - ROLE_USER
+          - ROLE_ADMIN
+      description: Datos publicos de un usuario de la plataforma
+    LoginDTO:
+      required:
+      - correo
+      - password
+      type: object
+      properties:
+        correo:
+          maxLength: 150
+          minLength: 0
+          type: string
+          description: Correo electronico registrado
+          format: email
+          example: usuario@geotour.com
+        password:
+          maxLength: 72
+          minLength: 0
+          type: string
+          description: Contrasena del usuario
+          format: password
+          example: Admin1234!
+      description: Credenciales para iniciar sesion
+    ClimaResponseDTO:
+      type: object
+      properties:
+        destinoId:
+          type: integer
+          description: Identificador del destino consultado
+          format: int64
+          example: 1
+        destinoNombre:
+          type: string
+          description: Nombre del destino consultado
+          example: Machu Picchu
+        temperatura:
+          type: number
+          description: Temperatura actual en grados Celsius
+          format: double
+          example: 18.5
+        sensacionTermica:
+          type: number
+          description: Sensacion termica en grados Celsius
+          format: double
+          example: 17.2
+        humedad:
+          type: integer
+          description: Humedad relativa en porcentaje
+          format: int32
+          example: 72
+        velocidadViento:
+          type: number
+          description: Velocidad del viento en metros por segundo
+          format: double
+          example: 3.1
+        descripcion:
+          type: string
+          description: Descripcion del estado del tiempo
+          example: nubes dispersas
+        icono:
+          type: string
+          description: Codigo de icono devuelto por OpenWeather
+          example: 02d
+        consultadoEn:
+          type: string
+          description: Instante UTC en que se realizo la consulta
+          format: date-time
+          example: 2026-11-11T15:30:00Z
+      description: Informacion climatologica actual de un destino obtenida de OpenWeather
+  securitySchemes:
+    bearerAuth:
+      type: http
+      description: "Token JWT con prefijo Bearer, obtenido mediante /api/v1/auth/login"
+      name: bearerAuth
+      scheme: bearer
+      bearerFormat: JWT
